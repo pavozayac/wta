@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "wta"
+version = "0.1.0"
+description = "A tool for gathering and analysis data concerning the public transport system in Warsaw"
+authors = ["Paweł Zając <pavlzayac@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.31.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
