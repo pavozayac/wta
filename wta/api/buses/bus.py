@@ -1,8 +1,10 @@
+from .models import BusLocation
 
 
 class Bus:
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, location_history: list[BusLocation]) -> None:
+        self.location_history = location_history
 
-    # def
+    def history(self) -> list[BusLocation]:
+        return self.location_history

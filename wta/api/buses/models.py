@@ -13,3 +13,7 @@ class BusLocation(BaseModel):
 
 class BusLocationResponse(BaseModel):
     locations: list[BusLocation] | str = Field(alias='result')
+
+
+class BusLocationList(BaseModel):
+    locations: list[BusLocation] = Field(alias='result')
