@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from http import HTTPStatus
+from urllib.parse import urljoin
+
 import requests
 
-from .model import BusLocation, BusLocationList
+from .models import BusLocation, BusLocationResponse
 from ..access_service import ApiAccessService
 
 
@@ -17,10 +19,10 @@ class ApiBusLocationService(BusLocationService):
 
     # Perhaps change this to an environment variable?
     def __init__(self,
-                 url='https://api.um.warszawa.pl/api/action/busestrams_get/',
+                 path='action/busestrams_get/',
                  resource_id='f2e5503e-927d-4ad3-9500-4ab9e55deb59') -> None:
 
-        self.locations_url = url
+        self.locations_path = path
         self.resource_id = resource_id
 
     def get_bus_locations(self, api_access: ApiAccessService) -> list[BusLocation]:
@@ -32,12 +34,19 @@ class ApiBusLocationService(BusLocationService):
 
         }
 
+        req_url = urljoin(api_access.base_api_url(), self.locations_path)
+
         response = requests.get(
-            self.locations_url, params=query_params, timeout=1000)
+            req_url, params=query_params, timeout=1000)
 
-        if response.status_code != HTTPStatus.OK:
-            raise ConnectionError('Server returned error response.')
+        if response.status_code != HTTPStatus.OK or 'result' not in response.json():
+            raise ConnectionError(
+                f'Server returned error response {response.status_code} at {response.url}. \n')
 
-        body = BusLocationList(**response.json())
+        body = BusLocationResponse(**response.json())
+
+        if isinstance(body.locations, str):
+            raise ConnectionError(
+                f'Server returned undescribed error response. \n')
 
         return body.locations

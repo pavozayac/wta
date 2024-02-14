@@ -11,5 +11,5 @@ class BusLocation(BaseModel):
     brigade: str = Field(alias='Brigade')
 
 
-class BusLocationList(BaseModel):
-    locations: list[BusLocation] = Field(alias='result')
+class BusLocationResponse(BaseModel):
+    locations: list[BusLocation] | str = Field(alias='result')
