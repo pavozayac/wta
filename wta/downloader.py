@@ -1,5 +1,6 @@
 import datetime
 import os
+from time import sleep
 from wta.api.buses.bus_location_service import ApiBusLocationService
 from wta.api.access_service import EnvApiAccessService
 
@@ -24,6 +25,8 @@ while datetime.datetime.now() < end:
     try:
         locs = locs_service.get_bus_locations(access_service)
         locs_repo.save_locations(BusLocationList(locations=locs))
+
+        sleep(15)
 
     except UndefinedServerBehaviourError:
         pass
