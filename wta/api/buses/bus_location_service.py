@@ -4,6 +4,8 @@ from urllib.parse import urljoin
 
 import requests
 
+from wta.exceptions.undef_server_behaviour import UndefinedServerBehaviourError
+
 from .models import BusLocation, BusLocationResponse
 from ..access_service import ApiAccessService
 
@@ -46,7 +48,7 @@ class ApiBusLocationService(BusLocationService):
         body = BusLocationResponse(**response.json())
 
         if isinstance(body.locations, str):
-            raise ConnectionError(
+            raise UndefinedServerBehaviourError(
                 f'Server returned undescribed error response. \n')
 
         return body.locations

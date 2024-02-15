@@ -1,0 +1,2 @@
+class UndefinedServerBehaviourError(Exception):
+    pass
