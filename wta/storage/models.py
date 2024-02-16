@@ -10,4 +10,4 @@ class BusHistory(BaseModel):
 
 
 class SaveBusData(BaseModel):
-    locations: dict[str, BusHistory]
+    bus_dict: dict[str, BusHistory]

@@ -8,6 +8,7 @@ class ApiAccessService(ABC):
     def api_key(self) -> str:
         pass
 
+    @abstractmethod
     def base_api_url(self) -> str:
         pass
 

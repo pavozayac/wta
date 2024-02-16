@@ -19,7 +19,7 @@ locs_repo = JSONFileLocationRepository(file_name)
 
 
 start = datetime.datetime.now()
-end = start + datetime.timedelta(minutes=15)
+end = start + datetime.timedelta(minutes=1)
 
 while datetime.datetime.now() < end:
     try:
