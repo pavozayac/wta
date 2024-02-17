@@ -63,15 +63,15 @@ jobs:
       - name: Run the automated tests (for example)
         run: poetry run pytest -v --cov wta --cov-report=xml 
 
-  coverage:
-      runs-on: ubuntu-latest
-      needs: test
-      steps:
-        - name: Upload coverage reports to Codecov
-          run: |
-            curl -Os https://uploader.codecov.io/latest/linux/codecov
-            chmod +x codecov
-            ./codecov -t ${CODECOV_TOKEN}
+  # coverage:
+  #     runs-on: ubuntu-latest
+  #     needs: test
+  #     steps:
+      - name: Upload coverage reports to Codecov
+        run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t ${{secrets.CODECOV_TOKEN}}
 
         # - name: Upload coverage reports to Codecov
         #   uses: codecov/codecov-action@v4.0.1
