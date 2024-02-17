@@ -8,7 +8,7 @@ jobs:
         steps:
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4.0.1
-              env:
+              with:
                 token: ${{ secrets.CODECOV_TOKEN }}
                 slug: pavozayac/python_lab_projects
                 fail_ci_if_error: true
