@@ -13,4 +13,4 @@ jobs:
                 fail_ci_if_error: true
                 files: .coverage
               env:
-                slug: pavozayac/python_lab_projects
+                slug: pavozayac/wta
