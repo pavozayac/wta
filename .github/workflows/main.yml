@@ -39,7 +39,7 @@ on:
 #       - run: poetry run pytest
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -61,4 +61,13 @@ jobs:
       - name: Install the project dependencies
         run: poetry install
       - name: Run the automated tests (for example)
-        run: poetry run pytest -v
+        run: poetry run pytest -v --cov
+        
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        env:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: pavozayac/python_lab_projects
+
+
+

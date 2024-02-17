@@ -6,3 +6,5 @@ vars.sh
 
 out/**
 out
+
+.coverage
