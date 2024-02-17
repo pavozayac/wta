@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-from wta.api.buses.models import BusLocation
+from wta.api.locations.models import BusLocation
 
 
 class BusHistory(BaseModel):

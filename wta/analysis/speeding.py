@@ -1,48 +1,41 @@
-from wta.storage.location_repo import JSONFileLocationRepository
 from datetime import datetime
+from typing import Any
 
 import pandas as pd
 import numpy as np
 
+from wta.storage.location_repo import JSONFileLocationRepository
 from wta.storage.models import BusHistory
 
 
-# def pd_timedelta(two: datetime):
-#     print(two)
-#     return pd.Timedelta(pd.to_datetime(two[1]) - pd.to_datetime(two[0])).seconds
+def calc_speed(df: pd.DataFrame) -> Any:
+    lon_dist = df['Lon']*111320
+    lat_dist = df['Lat']*110574
+
+    meter_dist = np.sqrt(lon_dist**2 + lat_dist**2)
+
+    return (meter_dist / 1000) / (df['Timestamp'] / 3600)
 
 
 def analyse_speeding(bhistory: BusHistory):
-    # locs_repo = JSONFileLocationRepository('./out/locs.json')
-
     locations = list(bhistory.times.values())
 
     loc_df = pd.DataFrame([tuple(bl.model_dump().values(
-    )) for bl in locations], columns=list(locations[0].model_fields.keys()) + list(locations[0].model_computed_fields.keys()))
+    )) for bl in locations], columns=list(locations[0].model_fields.keys()) + list(locations[0].model_computed_fields.keys())).drop_duplicates()
+    
 
-    time_diff = loc_df['Timestamp'].rolling(2).apply(
-        lambda x: np.diff(x))
-    # .apply(pd_timedelta)
-    lon_diff = loc_df['Lon'].rolling(2).apply(
-        lambda x: np.diff(x))
-    lat_diff = loc_df['Lat'].rolling(2).apply(
+    combined = loc_df[['Timestamp', 'Lon', 'Lat']].rolling(2).apply(
         lambda x: np.diff(x))
 
-    combined = pd.concat([lat_diff, lon_diff, time_diff], axis=1)
-
-    combined = combined.assign(speed=lambda df: np.sqrt(
-        df['Lon']**2 + df['Lat']**2) / df['Timestamp'])
+    combined = combined.assign(speed=calc_speed).sort_values(by='speed')
 
     print(combined)
-
-    # print(loc_df)
-    # print(loc_df.drop_duplicates())
-
-    # print(loc_df[['Time', 'VehicleNumber']].sort_values('Time'))
-
+    print(combined['speed'].mean())
+    
+    print(loc_df['Lat'].min(), loc_df['Lat'].max(), loc_df['Lon'].min(), loc_df['Lon'].max())
 
 if __name__ == '__main__':
-    locs_repo = JSONFileLocationRepository('./out/locs.json')
-    example = locs_repo.get_locations().bus_dict['1000']
+    locs_repo = JSONFileLocationRepository()
+    example = locs_repo.get_locations("./out/locs.json").bus_dict['1000']
 
     analyse_speeding(example)

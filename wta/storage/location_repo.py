@@ -9,7 +9,7 @@ from pydantic import json as pydjson
 
 
 # from ..api.buses.models import BusLocation, BusLocationList, SaveBusData
-from wta.api.buses.models import BusLocationList
+from wta.api.locations.models import BusLocationList
 from wta.storage.models import SaveBusData, BusHistory
 
 
@@ -20,18 +20,19 @@ class LocationRepository(ABC):
     #     pass
 
     @abstractmethod
-    def get_locations(self) -> BusLocationList:
+    def get_locations(self, file_path: str) -> BusLocationList:
         pass
 
     @abstractmethod
-    def save_locations(self, locations_list: BusLocationList) -> None:
+    def save_locations(self, locations_list: BusLocationList, file_path: str):
         pass
 
 
 class JSONFileLocationRepository(LocationRepository):
 
-    def __init__(self, file_path: str) -> None:
-        self.file_path = file_path
+    def __init__(self) -> None:
+        # self.file_path = file_path
+        pass
 
     # def get_bus_history(self, vehicle_number: str) -> BusHistory | None:
     #     if os.path.exists(self.file_path):
@@ -42,11 +43,11 @@ class JSONFileLocationRepository(LocationRepository):
 
     #     return None
 
-    def get_locations(self) -> SaveBusData:
+    def get_locations(self, file_path: str) -> SaveBusData:
         saved_data = SaveBusData(bus_dict={})
 
-        if os.path.exists(self.file_path):
-            with open(self.file_path, 'r') as json_file:
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as json_file:
                 saved_data = SaveBusData(**load(json_file))
 
         return saved_data
@@ -75,10 +76,10 @@ class JSONFileLocationRepository(LocationRepository):
 
         return SaveBusData(bus_dict=new_histories)
 
-    def save_locations(self, locations_list: BusLocationList) -> None:
-        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+    def save_locations(self, locations_list: BusLocationList, file_path: str):
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-        saved_data = self.get_locations()
+        saved_data = self.get_locations(file_path)
 
         new_data = JSONFileLocationRepository.__convert_list_to_bus_dicts(
             locations_list)
@@ -88,5 +89,5 @@ class JSONFileLocationRepository(LocationRepository):
 
         # combined = JSONFileLocationRepository.__merge_bus_histories(saved)
 
-        with open(self.file_path, 'w') as json_file:
+        with open(file_path, 'w') as json_file:
             json_file.write(combined.model_dump_json())

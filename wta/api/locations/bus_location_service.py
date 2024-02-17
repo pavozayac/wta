@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from http import HTTPStatus
 from urllib.parse import urljoin
+from pydantic import ValidationError
 
 import requests
 
@@ -45,7 +46,14 @@ class ApiBusLocationService(BusLocationService):
             raise ConnectionError(
                 f'Server returned error response {response.status_code} at {response.url}. \n')
 
-        body = BusLocationResponse(**response.json())
+
+        while True:
+            try:
+                body = BusLocationResponse(**response.json())
+                break
+            except ValidationError:
+                pass
+                
 
         if isinstance(body.locations, str):
             raise UndefinedServerBehaviourError(
