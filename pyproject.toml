@@ -18,6 +18,7 @@ pyarrow = "^15.0.0"
 autopep8 = "^2.0.4"
 flake8 = "^7.0.0"
 2to3 = "^1.0"
+pytest = "^8.0.1"
 
 [build-system]
 requires = ["poetry-core"]
