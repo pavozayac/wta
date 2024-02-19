@@ -21,6 +21,7 @@ class BusLocationService(ABC):
 class ApiBusLocationService(BusLocationService):
 
     # Perhaps change this to an environment variable?
+    # TODO: move api_access service into constructor
     def __init__(self,
                  path='action/busestrams_get/',
                  resource_id='f2e5503e-927d-4ad3-9500-4ab9e55deb59') -> None:
