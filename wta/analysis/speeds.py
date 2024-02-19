@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import plotly.express as px
 
+from wta.analysis.clusters import ClusterAnalysisService
 from wta.storage.location_repo import JSONFileLocationRepository
 from wta.storage.models import BusHistory, SaveBusData
 from wta.storage.processing_repo import CsvRepo, DataFrameRepo
@@ -48,10 +49,6 @@ class SpeedAnnotationService:
 
         full_combined = pd.concat([loc_df, combined['speed']], axis=1)
 
-        # print(full_combined)
-
-        # print(full_combined['speed'].mean())
-
         return full_combined
 
     def get_combined_bus_speeds(self, all_buses: SaveBusData) -> pd.DataFrame:
@@ -66,8 +63,6 @@ class SpeedAnnotationService:
 
 
 if __name__ == '__main__':
-    # matplotlib.use('Qt5Agg')
-
     locs_repo = JSONFileLocationRepository()
     all_buses = locs_repo.get_locations("./out/locs.json")
     # .bus_dict['1000']
@@ -83,13 +78,11 @@ if __name__ == '__main__':
     except FileNotFoundError:
         df = SpeedAnnotationService().get_combined_bus_speeds(all_buses)
 
-    speeding = df[(df.speed > 50.0) & (df.speed < 150.0)]
+    speeding = df[(df.speed > 60.0) & (df.speed < 150.0)]
 
     overspeeding = df[df.speed >= 150.0]
 
     print(len(overspeeding.index) / len(df.index))
-
-    # bounds = (df.Lon.min(), df.Lon.max(), df.Lat.min(), df.Lat.max())
 
     fig = px.scatter_mapbox(
         speeding,
@@ -97,12 +90,21 @@ if __name__ == '__main__':
         lon='Lon',
         hover_data=['speed'],
         color='speed',
-        # color_continuous_scale=px.colors.sequential.Viridis,
-        # color_continuous_midpoint=speeding['speed'].mean(),
-        # color)
     )
 
     fig.update_layout(mapbox_style='open-street-map')
 
     fig.show()
 
+    clusters, noise = ClusterAnalysisService.get_clusters(speeding, 0.001)
+
+    fig2 = px.scatter_mapbox(
+        clusters,
+        lat='Lat',
+        lon='Lon',
+        color_discrete_sequence=[px.colors.label_rgb((255, 0, 0))]
+    )
+
+    fig2.update_layout(mapbox_style='open-street-map')
+
+    fig2.show()

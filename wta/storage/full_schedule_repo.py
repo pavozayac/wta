@@ -36,11 +36,15 @@ class JSONScheduleRepository(CompleteScheduleRepository):
         pass
 
     def get_schedule(self) -> CompleteSchedule:
-        if not os.path.exists(self.file_path):
-            raise FileNotFoundError('Schedule file could not be found')
+        complete_schedule = CompleteSchedule(lines={})
 
-        with open(self.file_path, 'r') as json_file:
-            return CompleteSchedule(**load(json_file))
+        if os.path.exists(self.file_path):
+            with open(self.file_path, 'r') as json_file:
+                return CompleteSchedule(**load(json_file))
+
+        return complete_schedule
+
+        
 
     def save_schedule(self, schedule: CompleteSchedule):
         if not os.path.exists(os.path.dirname(self.file_path)):
