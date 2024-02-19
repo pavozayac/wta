@@ -12,6 +12,7 @@ from wta.api.routes.route_service import ApiRouteService
 from wta.api.schedules.models import BrigadeSchedule, CompleteSchedule, LineSchedule, ScheduledBusStop
 from wta.api.stops.models import StopInfo, StopLocation
 from wta.api.stops.stop_loc_service import ApiStopLocationService
+from wta.storage.full_schedule_repo import JSONScheduleRepository
 
 
 class ScheduleService(ABC):
@@ -52,7 +53,7 @@ class ApiScheduleService(ScheduleService):
         req_url = urljoin(self.access_service.base_api_url(), self.url_path)
 
         response = requests.get(
-            req_url, params=query_params, timeout=1000)
+            req_url, params=query_params, timeout=10)
 
         if response.status_code != HTTPStatus.OK or 'result' not in response.json():
             raise ConnectionError(
@@ -77,12 +78,19 @@ class ApiScheduleService(ScheduleService):
             brigade = ''
 
             for key_value_list in stop_schedule.result:
+                # bad_time = False
+
                 for key_value in key_value_list.values:
                     if key_value.key == 'brygada':
                         brigade = key_value.value
 
                     if key_value.key == 'czas':
-                        time = key_value.value
+                        h, m, s = key_value.value.split(':')
+
+                        if int(h) >= 24:
+                            h = str(int(h) % 24).zfill(2)
+
+                        time = f'{h}:{m}:{s}'
 
                 stop_location = all_stops[stop_info.stop_group_nr][stop_info.stop_nr]
 
@@ -92,10 +100,16 @@ class ApiScheduleService(ScheduleService):
                     'brigade': brigade
                 })
 
-                brigades[brigade] = BrigadeSchedule(
-                    brigade=brigade, stops=brigades.get(
-                        brigade, BrigadeSchedule(
-                            brigade=brigade, stops=[])).stops + [scheduled_stop])
+                brig = brigades.get(brigade, BrigadeSchedule(brigade=brigade, stops=[]))
+
+                brig.stops.append(scheduled_stop)
+
+                brigades[brigade] = brig
+
+                # brigades[brigade] = BrigadeSchedule(
+                #     brigade=brigade, stops=brigades.get(
+                #         brigade, BrigadeSchedule(
+                #             brigade=brigade, stops=[])).stops + [scheduled_stop])
 
         return LineSchedule(line=line, brigades=brigades)
 
@@ -109,6 +123,7 @@ class ApiScheduleService(ScheduleService):
 
         for line, stop_infos in routes.items():
             full_schedule[line] = self.__create_line_schedule(line, stop_infos, all_stops)
+            print('got line ', line)
 
         return CompleteSchedule(lines=full_schedule)
 
@@ -119,4 +134,13 @@ if __name__ == '__main__':
     route_s = ApiRouteService(access)
     stop_s = ApiStopLocationService(access)
 
-    print(sched_s.get_full_schedules(route_s.get_routes(), stop_s.get_stop_locations()))
+    print('start')
+    routes = route_s.get_routes()
+    print('got routes, len: ', len(routes))
+    stop_locs = stop_s.get_stop_locations()
+    print('got stop locs')
+
+    repo = JSONScheduleRepository()
+    schedule = sched_s.get_full_schedules(routes, stop_locs)
+
+    repo.save_schedule(schedule)

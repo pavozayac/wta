@@ -85,6 +85,10 @@ if __name__ == '__main__':
 
     speeding = df[(df.speed > 50.0) & (df.speed < 150.0)]
 
+    overspeeding = df[df.speed >= 150.0]
+
+    print(len(overspeeding.index) / len(df.index))
+
     # bounds = (df.Lon.min(), df.Lon.max(), df.Lat.min(), df.Lat.max())
 
     fig = px.scatter_mapbox(
@@ -100,9 +104,5 @@ if __name__ == '__main__':
 
     fig.update_layout(mapbox_style='open-street-map')
 
-    # fig.add_layout_image(dict(
-    #     source=f'https://overpass-api.de/api/map?bbox={df.Lon.min()},{df.Lat.min()},{df.Lon.max()},{df.Lat.max()}'
-    # ))
     fig.show()
 
-    # print(speeding)
