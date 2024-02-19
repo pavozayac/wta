@@ -4,11 +4,14 @@ import requests
 from urllib.parse import urljoin
 from http import HTTPStatus
 
-from wta.api.generic.access_service import ApiAccessService
+from wta.api.generic.access_service import ApiAccessService, EnvApiAccessService
 from wta.api.generic.models import GenericKVResponse
 
 from wta.api.routes.models import RouteStop
-from wta.api.schedules.models import BrigadeSchedule, BusStop, LineSchedule, ScheduledBusStop
+from wta.api.routes.route_service import ApiRouteService
+from wta.api.schedules.models import BrigadeSchedule, CompleteSchedule, LineSchedule, ScheduledBusStop
+from wta.api.stops.models import StopInfo, StopLocation
+from wta.api.stops.stop_loc_service import ApiStopLocationService
 
 
 class ScheduleService(ABC):
@@ -18,7 +21,11 @@ class ScheduleService(ABC):
         pass
 
     @abstractmethod
-    def get_schedule(self, line_stops: dict[str, RouteStop]):
+    def get_full_schedules(self,
+                           routes: dict[str, list[StopInfo]],
+                           all_stops: dict[str,
+                                           dict[str,
+                                                StopLocation]]) -> CompleteSchedule:
         pass
 
 
@@ -55,12 +62,16 @@ class ApiScheduleService(ScheduleService):
 
         return parsed
 
-    # TODO: maybe get the full list of stops as an argument here to not reload it without need
-    def get_line_schedule(self, line: str, line_stops: list[BusStop]) -> LineSchedule:
+    def __create_line_schedule(self,
+                               line: str,
+                               stop_infos: list[StopInfo],
+                               all_stops: dict[str,
+                                               dict[str,
+                                                    StopLocation]]) -> LineSchedule:
         brigades: dict[str, BrigadeSchedule] = {}
 
-        for stop in line_stops:
-            stop_schedule = self.get_stop_schedule(line, stop.bus_stop_nr, stop.bus_stop_group_nr)
+        for stop_info in stop_infos:
+            stop_schedule = self.get_stop_schedule(line, stop_info.stop_nr, stop_info.stop_group_nr)
 
             time = datetime.utcnow().time()
             brigade = ''
@@ -73,13 +84,39 @@ class ApiScheduleService(ScheduleService):
                     if key_value.key == 'czas':
                         time = key_value.value
 
-                # get from another service
-                # stop = ...
+                stop_location = all_stops[stop_info.stop_group_nr][stop_info.stop_nr]
+
+                scheduled_stop = ScheduledBusStop(**{
+                    **stop_location.model_dump(),
+                    'time': time,
+                    'brigade': brigade
+                })
 
                 brigades[brigade] = BrigadeSchedule(
                     brigade=brigade, stops=brigades.get(
                         brigade, BrigadeSchedule(
-                            # TODO: put the stop into this list
-                            brigade=brigade, stops=[])).stops + [])
+                            brigade=brigade, stops=[])).stops + [scheduled_stop])
 
         return LineSchedule(line=line, brigades=brigades)
+
+    # TODO: maybe get the full list of stops as an argument here to not reload it without need
+    def get_full_schedules(self,
+                           routes: dict[str, list[StopInfo]],
+                           all_stops: dict[str,
+                                           dict[str,
+                                                StopLocation]]) -> CompleteSchedule:
+        full_schedule: dict[str, LineSchedule] = {}
+
+        for line, stop_infos in routes.items():
+            full_schedule[line] = self.__create_line_schedule(line, stop_infos, all_stops)
+
+        return CompleteSchedule(lines=full_schedule)
+
+
+if __name__ == '__main__':
+    access = EnvApiAccessService()
+    sched_s = ApiScheduleService(access)
+    route_s = ApiRouteService(access)
+    stop_s = ApiStopLocationService(access)
+
+    print(sched_s.get_full_schedules(route_s.get_routes(), stop_s.get_stop_locations()))

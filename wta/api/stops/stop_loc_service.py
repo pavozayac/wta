@@ -5,12 +5,13 @@ import requests
 
 from wta.api.generic.models import GenericKVResponse
 from wta.api.generic.access_service import ApiAccessService, EnvApiAccessService
+from wta.api.stops.models import StopLocation
 
 
 class StopLocationService(ABC):
 
     @abstractmethod
-    def get_stop_locations(self) -> GenericKVResponse:
+    def get_stop_locations(self) -> dict[str, dict[str, StopLocation]]:
         pass
 
 
@@ -25,8 +26,30 @@ class ApiStopLocationService(StopLocationService):
         self.url_path = path
         self.id = id
 
-    def get_stop_locations(self) -> GenericKVResponse:
+    @staticmethod
+    def __convert_to_dict(response: GenericKVResponse) -> dict[str, dict[str, StopLocation]]:
+        converted: dict[str, dict[str, StopLocation]] = {}
 
+        for kvlist in response.result:
+            props = {}
+
+            for kv in kvlist.values:
+                match kv.key:
+                    case 'zespol':
+                        props |= {'stop_group_nr': kv.value}
+                    case 'slupek':
+                        props |= {'stop_nr': kv.value}
+                    case 'dlug_geo':
+                        props |= {'lon': kv.value}
+                    case 'szer_geo':
+                        props |= {'lat': kv.value}
+
+            converted[props['stop_group_nr']] = converted.get(props['stop_group_nr'], {}) | {
+                props['stop_nr']: StopLocation(**props)}
+
+        return converted
+
+    def get_stop_locations(self) -> dict[str, dict[str, StopLocation]]:
         query_params = {
             'apikey': self.access_service.api_key(),
             'id': self.id,
@@ -44,11 +67,9 @@ class ApiStopLocationService(StopLocationService):
 
         parsed = GenericKVResponse(**response.json())
 
-        # TODO: change return type and add some conversion into a more appropriate
-        # and useful form, like a dict[str, dict[str, StopLocation]],
-        # so a dict from stop group nr, to a dict from stop nr to a stop location
+        converted = ApiStopLocationService.__convert_to_dict(parsed)
 
-        return parsed
+        return converted
 
 
 if __name__ == '__main__':
