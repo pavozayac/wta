@@ -9,7 +9,7 @@ from wta.api.generic.access_service import ApiAccessService, EnvApiAccessService
 
 from wta.api.locations.models import BusLocationList
 from wta.exceptions.undef_server_behaviour import UndefinedServerBehaviourError
-from wta.storage.location_repo import JSONFileLocationRepository, LocationRepository
+from wta.storage.location_repo import JSONLocationRepository, LocationRepository
 
 
 class LocationDownloaderService:
@@ -53,6 +53,6 @@ if __name__ == '__main__':
     downloader = LocationDownloaderService(
         EnvApiAccessService(),
         ApiBusLocationService(),
-        JSONFileLocationRepository())
+        JSONLocationRepository())
 
     downloader.download(10, 1)

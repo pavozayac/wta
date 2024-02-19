@@ -20,7 +20,7 @@ class CsvRepo(DataFrameRepo):
         self.file_name = file_name
 
     def save_csv(self, df: pd.DataFrame) -> None:
-        if not os.path.exists(self.file_name):
+        if not os.path.exists(os.path.dirname(self.file_name)):
             os.makedirs(os.path.dirname(self.file_name))
 
         df.to_csv(self.file_name)

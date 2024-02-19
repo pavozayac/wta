@@ -11,7 +11,7 @@ class ClusterAnalysisService:
     def get_clusters(speed_df: pd.DataFrame, percentage: float) -> tuple[pd.DataFrame, pd.DataFrame]:
         minimum_cluster_size = np.round(speed_df.shape[0] * percentage)
 
-        clusterer = DBSCAN(eps=2/6371., min_samples=10, n_jobs=-1, metric='haversine', algorithm='ball_tree')
+        clusterer = DBSCAN(eps=2/6371., min_samples=int(minimum_cluster_size), n_jobs=-1, metric='haversine', algorithm='ball_tree')
 
 
         # clusterer = DBSCAN()

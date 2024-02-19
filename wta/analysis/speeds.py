@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 
 from wta.analysis.clusters import ClusterAnalysisService
-from wta.storage.location_repo import JSONFileLocationRepository
+from wta.storage.location_repo import JSONLocationRepository
 from wta.storage.models import BusHistory, SaveBusData
 from wta.storage.processing_repo import CsvRepo, DataFrameRepo
 
@@ -28,7 +28,8 @@ class SpeedAnnotationService:
 
         return (meter_dist / 1000.0) / (df['Timestamp'] / 3600)
 
-    def get_bus_speeds(self, bhistory: BusHistory) -> pd.DataFrame:
+    @staticmethod
+    def get_bus_speeds(bhistory: BusHistory) -> pd.DataFrame:
         locations = list(bhistory.times.values())
 
         loc_df = pd.DataFrame(
@@ -55,16 +56,16 @@ class SpeedAnnotationService:
         buffer = [self.get_bus_speeds(bus) for bus in all_buses.bus_dict.values()]
         result = pd.concat(buffer)
 
-        print(result['speed'].max())
+        # print(result['speed'].max())
 
-        self.repo.save_csv(result)
+        # self.repo.save_csv(result)
 
         return result
 
 
 if __name__ == '__main__':
-    locs_repo = JSONFileLocationRepository()
-    all_buses = locs_repo.get_locations("./out/locs.json")
+    locs_repo = JSONLocationRepository()
+    all_buses = locs_repo.get_locations()
     # .bus_dict['1000']
 
     # SpeedAnnotationService().get_bus_speeds(example)
