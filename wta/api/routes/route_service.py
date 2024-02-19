@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 import requests
 from http import HTTPStatus
 
-from wta.api.access_service import ApiAccessService, EnvApiAccessService
+from wta.api.generic.access_service import ApiAccessService, EnvApiAccessService
 from wta.api.routes.models import RouteResponse
 
 from wta.api.schedules.models import BusStop

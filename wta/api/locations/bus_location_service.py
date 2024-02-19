@@ -8,7 +8,7 @@ import requests
 from wta.exceptions.undef_server_behaviour import UndefinedServerBehaviourError
 
 from .models import BusLocation, BusLocationResponse
-from ..access_service import ApiAccessService
+from ..generic.access_service import ApiAccessService
 
 
 class BusLocationService(ABC):
@@ -47,14 +47,12 @@ class ApiBusLocationService(BusLocationService):
             raise ConnectionError(
                 f'Server returned error response {response.status_code} at {response.url}. \n')
 
-
         while True:
             try:
                 body = BusLocationResponse(**response.json())
                 break
             except ValidationError:
                 pass
-                
 
         if isinstance(body.locations, str):
             raise UndefinedServerBehaviourError(

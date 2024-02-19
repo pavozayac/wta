@@ -5,7 +5,7 @@ import base64
 import re
 
 from wta.api.locations.bus_location_service import ApiBusLocationService, BusLocationService
-from wta.api.access_service import ApiAccessService, EnvApiAccessService
+from wta.api.generic.access_service import ApiAccessService, EnvApiAccessService
 
 from wta.api.locations.models import BusLocationList
 from wta.exceptions.undef_server_behaviour import UndefinedServerBehaviourError
@@ -14,7 +14,12 @@ from wta.storage.location_repo import JSONFileLocationRepository, LocationReposi
 
 class LocationDownloaderService:
 
-    def __init__(self, access_service: ApiAccessService, location_service: BusLocationService, location_repo: LocationRepository, file_name=None) -> None:
+    def __init__(
+            self,
+            access_service: ApiAccessService,
+            location_service: BusLocationService,
+            location_repo: LocationRepository,
+            file_name=None) -> None:
         self.access_service = access_service
         self.location_service = location_service
         self.location_repo = location_repo
@@ -25,11 +30,10 @@ class LocationDownloaderService:
             slug_fname = re.sub(r"[\W]", "_", str(datetime.datetime.now()))
             print(slug_fname)
             self.file_name = f'./out/{slug_fname}.json'
-        
-    def download(self, interval_secs = 10, total_mins = 60):
+
+    def download(self, interval_secs=10, total_mins=60):
         if os.path.exists(self.file_name):
             os.remove(self.file_name)
-
 
         start = datetime.datetime.now()
         end = start + datetime.timedelta(minutes=total_mins)
@@ -46,7 +50,9 @@ class LocationDownloaderService:
 
 
 if __name__ == '__main__':
-    downloader = LocationDownloaderService(EnvApiAccessService(), ApiBusLocationService(), JSONFileLocationRepository())
+    downloader = LocationDownloaderService(
+        EnvApiAccessService(),
+        ApiBusLocationService(),
+        JSONFileLocationRepository())
 
     downloader.download(10, 1)
-
