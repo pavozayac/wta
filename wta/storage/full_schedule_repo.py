@@ -43,7 +43,8 @@ class JSONScheduleRepository(CompleteScheduleRepository):
             return CompleteSchedule(**load(json_file))
 
     def save_schedule(self, schedule: CompleteSchedule):
-        os.makedirs(os.path.dirname(self.file_path))
+        if not os.path.exists(os.path.dirname(self.file_path)):
+            os.makedirs(os.path.dirname(self.file_path))
         
         with open(self.file_path, 'w') as json_file:
             json_file.write(schedule.model_dump_json())

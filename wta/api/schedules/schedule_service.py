@@ -135,7 +135,12 @@ if __name__ == '__main__':
     stop_s = ApiStopLocationService(access)
 
     print('start')
+
+    desired_lines = ['128']
     routes = route_s.get_routes()
+
+    routes = {k: routes[k] for k in routes.keys() if k in desired_lines}
+
     print('got routes, len: ', len(routes))
     stop_locs = stop_s.get_stop_locations()
     print('got stop locs')
